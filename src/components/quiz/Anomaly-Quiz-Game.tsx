@@ -147,7 +147,6 @@ export default function AnomalyQuiz(): JSX.Element {
   const [unlockMessage, setUnlockMessage] = useState<string>("");
   const [finalUnlocked, setFinalUnlocked] = useState<boolean>(false);
 
-  const finalVideoSrc = "/final-video.mp4";
 
   useEffect(() => {
     // choose random 10 for levels 1 & 2; keep level3 as-is
@@ -172,7 +171,7 @@ export default function AnomalyQuiz(): JSX.Element {
 
     setTimeout(() => {
       goNextQuestion();
-    }, 650);
+    }, 1500); // Increased delay for better visual feedback
   }
 
   function handleTextSubmit() {
@@ -257,10 +256,7 @@ export default function AnomalyQuiz(): JSX.Element {
         {finalUnlocked && (
           <div className="text-center py-8">
             <h1 className="text-2xl font-extrabold mb-4 text-green-400">YOU HAVE SUCCESSFULLY UNLOCKED THE PORTAL 🔓✨</h1>
-            <p className="mb-6">Enjoy the final reveal. (Replace the video file in public folder at {finalVideoSrc})</p>
-            <div className="mx-auto max-w-2xl">
-              <video src={finalVideoSrc} controls autoPlay className="w-full rounded-lg shadow-lg border border-green-400" />
-            </div>
+            <p className="mb-6">You have completed all puzzle levels. The final enigma is solved.</p>
             <div className="mt-6">
               <button onClick={restartGame} className="px-5 py-2 rounded bg-green-500 text-black font-medium">
                 Play Again
@@ -282,14 +278,18 @@ export default function AnomalyQuiz(): JSX.Element {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {currentQuestion.options.map((opt, i) => {
                     const isSelected = selectedOption === i;
-                    const isCorrect = selectedOption !== null && currentQuestion.correctIndex !== undefined && i === currentQuestion.correctIndex;
-                    const baseClass = "px-4 py-3 rounded-lg border cursor-pointer text-left font-medium";
+                    const isCorrect = currentQuestion.correctIndex !== undefined && i === currentQuestion.correctIndex;
+                    const baseClass = "px-4 py-3 rounded-lg border cursor-pointer text-left font-medium transition-all duration-300";
                     let extra = "border-green-500/30 bg-green-900/20";
 
                     if (selectedOption !== null) {
-                      if (isCorrect) extra = "border-green-400 bg-green-500/20";
-                      else if (isSelected) extra = "border-red-400 bg-red-500/10";
-                      else extra = "opacity-70";
+                      if (isCorrect) {
+                        extra = "border-green-400 bg-green-500/20 scale-105"; // Correct answer is always green
+                      } else if (isSelected && !isCorrect) {
+                        extra = "border-red-400 bg-red-500/10 scale-95"; // Incorrect selection is red
+                      } else {
+                        extra = "opacity-70"; // Other options are faded
+                      }
                     } else {
                       extra = "hover:scale-[1.01] transition-transform";
                     }
@@ -297,7 +297,7 @@ export default function AnomalyQuiz(): JSX.Element {
                     return (
                       <button
                         key={i}
-                        className={'${baseClass} ${extra}'}
+                        className={`${baseClass} ${extra}`}
                         onClick={() => handleOptionClick(i)}
                         disabled={selectedOption !== null}
                       >
