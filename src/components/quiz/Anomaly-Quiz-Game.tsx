@@ -1,21 +1,16 @@
-/*
-Anomaly-Quiz-Game.tsx
-Updated with background that matches the terminal environment
-*/
-
-import { useEffect, useState } from "react";
+// src/components/Anomaly-Quiz-Game.tsx
+import React, { useEffect, useState } from "react";
 
 type Question = {
   id: number;
   text: string;
-  options: string[];
-  correctIndex: number; // index into options
+  options?: string[]; // Level 1 & 3
+  correctIndex?: number; // Level 1 & 3
+  correctKeywords?: string[]; // Level 2 (loose matching)
 };
 
-const chars =
-  "アァイィウヴエェオカキクケコサシスセソタチツテトABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
 const QUESTION_BANK: { level1: Question[]; level2: Question[]; level3: Question[] } = {
+  // 50 amplitude-based MCQs
   level1: [
     { id: 1, text: "Amplitude is the measure of:", options: ["Frequency of wave", "Maximum displacement from equilibrium", "Wavelength", "Wave speed"], correctIndex: 1 },
     { id: 2, text: "Which unit can represent amplitude for displacement waves?", options: ["Meters (m)", "Hertz (Hz)", "Seconds (s)", "Meters/second (m/s)"], correctIndex: 0 },
@@ -55,7 +50,7 @@ const QUESTION_BANK: { level1: Question[]; level2: Question[]; level3: Question[
     { id: 36, text: "Amplitude in a standing wave is highest at:", options: ["Nodes", "Antinodes", "Midpoint only", "All points equal"], correctIndex: 1 },
     { id: 37, text: "Amplitude is usually represented by which letter in y = A sin(ωt + φ)?", options: ["ω", "A", "φ", "t"], correctIndex: 1 },
     { id: 38, text: "A wave transmitting more energy will likely have:", options: ["Smaller amplitude", "Larger amplitude", "Same amplitude always", "Lower frequency always"], correctIndex: 1 },
-    { id: 39, text: "When two waves of equal amplitude are exactly out of phase, they:" , options: ["Double in amplitude", "Cancel each other (destructive)", "Form standing wave", "Change frequency"], correctIndex: 1 },
+    { id: 39, text: "When two waves of equal amplitude are exactly out of phase, they:", options: ["Double in amplitude", "Cancel each other (destructive)", "Form standing wave", "Change frequency"], correctIndex: 1 },
     { id: 40, text: "Which of these signals has amplitude information that changes over time?", options: ["Constant DC", "AM signal", "Pure tone of fixed amplitude", "None"], correctIndex: 1 },
     { id: 41, text: "Amplitude in AC electricity refers to:", options: ["Peak voltage/current", "Average power only", "Resistance", "Frequency"], correctIndex: 0 },
     { id: 42, text: "In medical ultrasounds, amplitude affects:", options: ["Image color only", "Echo strength (brightness)", "Machine cost", "Scan duration"], correctIndex: 1 },
@@ -66,9 +61,10 @@ const QUESTION_BANK: { level1: Question[]; level2: Question[]; level3: Question[
     { id: 47, text: "Amplitude of a damped oscillator decays typically as:", options: ["Exponential decay", "Linear increase", "Sinusoidal only", "Constant"], correctIndex: 0 },
     { id: 48, text: "For a standing wave on a string, amplitude at a node is:", options: ["Maximum", "Minimum (zero)", "Undefined", "Equal to antinode"], correctIndex: 1 },
     { id: 49, text: "Which of these would you change to increase amplitude of a driven oscillator?", options: ["Drive amplitude (input)", "Time period only", "Wavelength only", "Frequency only"], correctIndex: 0 },
-    { id: 50, text: "Amplitude is fundamentally a measure of:", options: ["Temporal frequency", "Spatial phase", "Magnitude of oscillation/displacement", "Temperature"], correctIndex: 2 },
+    { id: 50, text: "Amplitude is fundamentally a measure of:", options: ["Temporal frequency", "Spatial phase", "Magnitude of oscillation/displacement", "Temperature"], correctIndex: 2 }
   ],
 
+  // 50 DSA questions (level2) with loose keyword arrays
   level2: [
     { id: 1, text: "Describe push and pop operations in a stack. GIVE YOUR ANSWER", correctKeywords: ["lifo", "push", "pop", "last in first out"] },
     { id: 2, text: "Explain how a queue works and name its main operations. GIVE YOUR ANSWER", correctKeywords: ["fifo", "enqueue", "dequeue", "first in first out"] },
@@ -76,7 +72,7 @@ const QUESTION_BANK: { level1: Question[]; level2: Question[]; level3: Question[
     { id: 4, text: "What is inorder traversal of a binary tree? GIVE YOUR ANSWER", correctKeywords: ["left root right", "inorder"] },
     { id: 5, text: "Difference between binary tree and binary search tree. GIVE YOUR ANSWER", correctKeywords: ["bst", "ordered", "binary search tree", "left smaller right larger"] },
     { id: 6, text: "Write the idea behind bubble sort. GIVE YOUR ANSWER", correctKeywords: ["bubble sort", "adjacent swap", "compare and swap"] },
-    { id: 7, text: "Average time complexity of quicksort. GIVE YOUR ANSWER", correctKeywords: ["n log n", "nlogn"] },
+    { id: 7, text: "Average time complexity of quicksort. GIVE YOUR ANSWER", correctKeywords: ["n log n", "nlogn", "n * log n"] },
     { id: 8, text: "Explain binary search. GIVE YOUR ANSWER", correctKeywords: ["binary search", "sorted", "divide and conquer", "mid"] },
     { id: 9, text: "What causes stack overflow? GIVE YOUR ANSWER", correctKeywords: ["infinite recursion", "too deep recursion", "exceed stack"] },
     { id: 10, text: "Difference between queue and deque. GIVE YOUR ANSWER", correctKeywords: ["deque", "double ended", "both ends"] },
@@ -84,15 +80,15 @@ const QUESTION_BANK: { level1: Question[]; level2: Question[]; level3: Question[
     { id: 12, text: "Explain level order traversal of a tree. GIVE YOUR ANSWER", correctKeywords: ["bfs", "level order", "queue"] },
     { id: 13, text: "What is height and depth of a node in a tree? GIVE YOUR ANSWER", correctKeywords: ["height depth", "height of node", "depth of node"] },
     { id: 14, text: "Describe merge sort concept. GIVE YOUR ANSWER", correctKeywords: ["merge sort", "divide and conquer", "merge"] },
-    { id: 15, text: "How to insert into a binary search tree? GIVE YOUR ANSWER", correctKeywords: ["bst insert", "compare and go left right"] },
+    { id: 15, text: "How to insert into a binary search tree? GIVE YOUR ANSWER", correctKeywords: ["bst insert", "compare and go left right", "insert bst"] },
     { id: 16, text: "What is amortized analysis? GIVE YOUR ANSWER", correctKeywords: ["amortized"] },
     { id: 17, text: "Explain difference between array and linked list. GIVE YOUR ANSWER", correctKeywords: ["random access", "dynamic size", "contiguous", "linked list"] },
     { id: 18, text: "What is a priority queue? GIVE YOUR ANSWER", correctKeywords: ["priority queue", "heap", "priority"] },
-    { id: 19, text: "Explain two-pointer technique. GIVE YOUR ANSWER", correctKeywords: ["two pointer", "two pointers"] },
+    { id: 19, text: "Explain two-pointer technique. GIVE YOUR ANSWER", correctKeywords: ["two pointer", "two pointers", "two-pointer"] },
     { id: 20, text: "How does insertion sort work? GIVE YOUR ANSWER", correctKeywords: ["insertion sort", "insert into sorted", "shift elements"] },
     { id: 21, text: "Explain what a balanced tree is. GIVE YOUR ANSWER", correctKeywords: ["balanced tree", "height balanced", "avl", "red black"] },
     { id: 22, text: "Describe how a hash table handles collisions. GIVE YOUR ANSWER", correctKeywords: ["chaining", "open addressing", "collision"] },
-    { id: 23, text: "What is the time complexity of searching in a linked list? GIVE YOUR ANSWER", correctKeywords: ["o(n)", "linear"] },
+    { id: 23, text: "What is the time complexity of searching in a linked list? GIVE YOUR ANSWER", correctKeywords: ["o(n)", "linear", "linear time"] },
     { id: 24, text: "Explain preorder traversal. GIVE YOUR ANSWER", correctKeywords: ["root left right", "preorder"] },
     { id: 25, text: "Describe postorder traversal. GIVE YOUR ANSWER", correctKeywords: ["left right root", "postorder"] },
     { id: 26, text: "How to perform breadth-first search (BFS)? GIVE YOUR ANSWER", correctKeywords: ["bfs", "queue"] },
@@ -111,7 +107,7 @@ const QUESTION_BANK: { level1: Question[]; level2: Question[]; level3: Question[
     { id: 39, text: "How to rotate an array by k positions? GIVE YOUR ANSWER", correctKeywords: ["reverse method", "rotate", "k positions"] },
     { id: 40, text: "Difference between linear search and binary search. GIVE YOUR ANSWER", correctKeywords: ["binary search", "sorted", "o(n) vs o(log n)"] },
     { id: 41, text: "Explain how to implement a queue using two stacks. GIVE YOUR ANSWER", correctKeywords: ["two stacks", "enqueue dequeue", "amortized"] },
-    { id: 42, text: "What is the complexity of searching in a balanced BST? GIVE YOUR ANSWER", correctKeywords: ["log n", "o(log n)"] },
+    { id: 42, text: "What is the complexity of searching in a balanced BST? GIVE YOUR ANSWER", correctKeywords: ["log n", "o(log n)", "logarithmic"] },
     { id: 43, text: "Explain Rabin-Karp algorithm idea for string search. GIVE YOUR ANSWER", correctKeywords: ["rolling hash", "rabin karp"] },
     { id: 44, text: "How to find lowest common ancestor in BST? GIVE YOUR ANSWER", correctKeywords: ["lca", "compare values", "bst lca"] },
     { id: 45, text: "Describe topological sort. GIVE YOUR ANSWER", correctKeywords: ["topological", "dag", "order"] },
@@ -119,25 +115,26 @@ const QUESTION_BANK: { level1: Question[]; level2: Question[]; level3: Question[
     { id: 47, text: "Explain Floyd’s cycle-finding algorithm. GIVE YOUR ANSWER", correctKeywords: ["floyd", "tortoise hare"] },
     { id: 48, text: "What is divide and conquer? GIVE YOUR ANSWER", correctKeywords: ["divide and conquer", "divide conquer combine"] },
     { id: 49, text: "How to implement binary search on floating point with precision? GIVE YOUR ANSWER", correctKeywords: ["epsilon", "precision"] },
-    { id: 50, text: "Explain the concept of sentinel nodes in linked lists. GIVE YOUR ANSWER", correctKeywords: ["sentinel", "dummy head", "dummy node"] },
+    { id: 50, text: "Explain the concept of sentinel nodes in linked lists. GIVE YOUR ANSWER", correctKeywords: ["sentinel", "dummy head", "dummy node"] }
   ],
 
+  // Level 3 unchanged (kept short)
   level3: [
     { id: 1, text: "I speak without a mouth and hear without ears. I have nobody, but I come alive with wind. What am I?", options: ["Echo", "Shadow", "Fire", "Silence"], correctIndex: 0 },
     { id: 2, text: "Which 4-digit number has digits that add up to 10 and is divisible by 5?", options: ["1004", "4006", "5500", "6700"], correctIndex: 2 },
     { id: 3, text: "Which of these numbers is a prime?", options: ["121", "143", "149", "169"], correctIndex: 2 },
     { id: 4, text: "Next in series: 2, 10, 12, 60, 62, ?", options: ["124", "310", "314", "62"], correctIndex: 1 },
-    { id: 5, text: "I am an odd number. Take away one letter and I become even. What number am I?", options: ["Seven", "Eleven", "Five", "Nine"], correctIndex: 0 },
-  ],
+    { id: 5, text: "I am an odd number. Take away one letter and I become even. What number am I?", options: ["Seven", "Eleven", "Five", "Nine"], correctIndex: 0 }
+  ]
 };
 
-function getRandomSubset<T>(arr: T[], count: number) {
+function getRandomSubset<T>(arr: T[], count: number): T[] {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
-  return copy.slice(0, count);
+  return copy.slice(0, Math.min(count, copy.length));
 }
 
 export default function AnomalyQuiz(): JSX.Element {
@@ -151,10 +148,10 @@ export default function AnomalyQuiz(): JSX.Element {
   const [unlockMessage, setUnlockMessage] = useState<string>("");
   const [finalUnlocked, setFinalUnlocked] = useState<boolean>(false);
 
-  const finalVideoSrc = "/final-video.mp4"; // Replace with your own video file in public/
+  const finalVideoSrc = "/final-video.mp4";
 
   useEffect(() => {
-    // pick random 10 questions for levels 1 and 2
+    // choose random 10 for levels 1 & 2; keep level3 as-is
     if (level === 1) setQuestions(getRandomSubset(QUESTION_BANK.level1, 10));
     else if (level === 2) setQuestions(getRandomSubset(QUESTION_BANK.level2, 10));
     else if (level === 3) setQuestions(QUESTION_BANK.level3);
@@ -165,11 +162,11 @@ export default function AnomalyQuiz(): JSX.Element {
   }, [level]);
 
   function handleOptionClick(optionIndex: number) {
-    if (selectedOption !== null) return; // prevent double-clicking
-    setSelectedOption(optionIndex);
+    if (selectedOption !== null) return; // prevent multiple clicks
 
+    setSelectedOption(optionIndex);
     const currentQ = questions[index];
-    const isCorrect = optionIndex === currentQ.correctIndex;
+    const isCorrect = currentQ.correctIndex !== undefined && optionIndex === currentQ.correctIndex;
     if (isCorrect) {
       setScoreByLevel((s) => ({ ...s, [level]: (s[level] || 0) + 1 }));
     }
@@ -180,15 +177,14 @@ export default function AnomalyQuiz(): JSX.Element {
   }
 
   function handleTextSubmit() {
-    if (!textAnswer.trim()) return; // ignore empty submits
+    if (!textAnswer.trim()) return; // ignore blank
 
     const currentQ = questions[index];
     const user = textAnswer.trim().toLowerCase();
     const keywords = currentQ.correctKeywords || [];
 
-    // Loose matching: correct if any keyword is present in user answer
+    // Loose matching: correct if any keyword is included
     const isCorrect = keywords.some((kw) => user.includes(kw.toLowerCase()));
-
     if (isCorrect) {
       setScoreByLevel((s) => ({ ...s, [level]: (s[level] || 0) + 1 }));
     }
@@ -213,8 +209,7 @@ export default function AnomalyQuiz(): JSX.Element {
     setSelectedOption(null);
 
     if (level === 1) {
-      setUnlockMessage(`Level 2 Unlocked Successfully
-Now the puzzles are going to be more interesting`);
+      setUnlockMessage("Level 2 Unlocked Successfully\nNow the puzzles are going to be more interesting");
       setShowUnlockScreen(true);
     } else if (level === 2) {
       setUnlockMessage("Level 3 Unlocked Successfully\nNow the puzzles are going to be more interesting");
@@ -240,149 +235,21 @@ Now the puzzles are going to be more interesting`);
 
   const currentQuestion = questions[index];
 
-  // glitchy matrix background
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const fontSize = 16;
-    const columns = Math.floor(canvas.width / fontSize);
-    const drops = Array(columns).fill(1);
-
-    let animationFrame: number;
-
-    const draw = () => {
-      if (!ctx) return;
-
-      ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = "rgba(0, 255, 0, 0.25)";
-      ctx.font = `${fontSize}px monospace`;
-
-      drops.forEach((y, i) => {
-        const text = chars[Math.floor(Math.random() * chars.length)];
-        ctx.fillText(text, i * fontSize, y * fontSize);
-
-        if (y * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-        drops[i]++;
-      });
-
-      animationFrame = requestAnimationFrame(draw);
-    };
-
-    draw();
-
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      cancelAnimationFrame(animationFrame);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!showUnlockScreen || (level !== 1 && level !== 2)) return;
-
-    const canvas = skullCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const width = canvas.width;
-    const height = canvas.height;
-
-    const img = new Image();
-    img.src = skullImg;
-
-    img.onload = () => {
-      ctx.drawImage(img, 0, 0, width, height);
-      const imageData = ctx.getImageData(0, 0, width, height);
-      ctx.clearRect(0, 0, width, height);
-
-      const points: { x: number; y: number }[] = [];
-
-      for (let y = 0; y < height; y += 3) {
-        for (let x = 0; x < width; x += 3) {
-          const idx = (y * width + x) * 4;
-          const r = imageData.data[idx];
-          const g = imageData.data[idx + 1];
-          const b = imageData.data[idx + 2];
-          const a = imageData.data[idx + 3];
-
-          const brightness = (r + g + b) / 3;
-
-          if (a > 100 && brightness > 100) {
-            points.push({ x, y });
-          }
-        }
-      }
-
-      let t = 0;
-      const animate = () => {
-        ctx.clearRect(0, 0, width, height);
-
-        points.forEach((p, i) => {
-          const dx = Math.sin(t / 15 + i) * 1.5;
-          const dy = Math.cos(t / 18 + i) * 1.5;
-          const size = 1.5 + Math.sin(t / 20 + i) * 0.8;
-
-          ctx.beginPath();
-          ctx.arc(p.x + dx, p.y + dy, size, 0, Math.PI * 2);
-
-          // 🔥 color depends on level
-          if (level === 1) {
-            ctx.fillStyle = `rgba(0, 255, 0, ${0.6 + Math.random() * 0.4})`; // green
-            ctx.shadowColor = "lime";
-          } else if (level === 2) {
-            ctx.fillStyle = `rgba(255, 0, 0, ${0.6 + Math.random() * 0.4})`; // red
-            ctx.shadowColor = "red";
-          }
-
-          ctx.shadowBlur = 12;
-          ctx.fill();
-        });
-
-        t++;
-        requestAnimationFrame(animate);
-      };
-
-      animate();
-    };
-  }, [showUnlockScreen, level]);
-
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-black via-[#0a0a1a] to-black text-white">
-      <div className="w-full max-w-3xl bg-black/70 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/10">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-green-900 via-black to-green-900 text-white p-6">
+      <div className="w-full max-w-4xl bg-black/70 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-green-400">
         <header className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-semibold text-green-400">Anomaly — Puzzle Levels</h2>
           <div className="text-sm opacity-80">
-            Level: <span className="font-bold">{level}</span> &nbsp;|&nbsp; Score: <span className="font-bold">{scoreByLevel[level] || 0}</span>
+            Level: <span className="font-bold text-green-300">{level}</span> &nbsp;|&nbsp; Score: <span className="font-bold text-green-300">{scoreByLevel[level] || 0}</span>
           </div>
         </header>
 
         {showUnlockScreen && (
-          <div className="text-center py-16">
-            <h3 className="text-2xl font-bold mb-4">{unlockMessage.split("\n")[0]}</h3>
+          <div className="text-center py-12">
+            <h3 className="text-2xl font-bold mb-4 text-green-400">{unlockMessage.split("\n")[0]}</h3>
             <p className="mb-6 whitespace-pre-line">{unlockMessage.split("\n")[1]}</p>
-            <button
-              onClick={startNextLevel}
-              className="px-6 py-2 rounded-lg bg-gradient-to-r from-green-400 to-green-600 text-black font-semibold shadow-md"
-            >
+            <button onClick={startNextLevel} className="px-6 py-2 rounded-lg bg-gradient-to-r from-green-400 to-green-600 text-black font-semibold shadow-md">
               Start Level {level + 1}
             </button>
           </div>
@@ -390,7 +257,7 @@ Now the puzzles are going to be more interesting`);
 
         {finalUnlocked && (
           <div className="text-center py-8">
-            <h1 className="text-2xl font-extrabold mb-4">You have successfully Unlocked the portal! 🔓✨</h1>
+            <h1 className="text-2xl font-extrabold mb-4 text-green-400">You have successfully Unlocked the portal! 🔓✨</h1>
             <p className="mb-6">Enjoy the final reveal. (Replace the video file in public folder at {finalVideoSrc})</p>
             <div className="mx-auto max-w-2xl">
               <video src={finalVideoSrc} controls autoPlay className="w-full rounded-lg shadow-lg border border-green-400" />
@@ -416,7 +283,7 @@ Now the puzzles are going to be more interesting`);
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {currentQuestion.options.map((opt, i) => {
                     const isSelected = selectedOption === i;
-                    const isCorrect = selectedOption !== null && i === currentQuestion.correctIndex;
+                    const isCorrect = selectedOption !== null && currentQuestion.correctIndex !== undefined && i === currentQuestion.correctIndex;
                     const baseClass = "px-4 py-3 rounded-lg border cursor-pointer text-left font-medium";
                     let extra = "border-green-500/30 bg-green-900/20";
 
@@ -436,9 +303,7 @@ Now the puzzles are going to be more interesting`);
                         disabled={selectedOption !== null}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 flex items-center justify-center rounded-full bg-green-800/40 text-sm">
-                            {String.fromCharCode(65 + i)}
-                          </div>
+                          <div className="w-8 h-8 flex items-center justify-center rounded-full bg-green-800/40 text-sm">{String.fromCharCode(65 + i)}</div>
                           <div>{opt}</div>
                         </div>
                       </button>
@@ -455,14 +320,11 @@ Now the puzzles are going to be more interesting`);
                     onChange={(e) => setTextAnswer(e.target.value)}
                     className="flex-1 px-3 py-2 rounded bg-black/40 border border-green-400 text-green-200"
                     placeholder="GIVE YOUR ANSWER"
-                    onKeyDown={(e) => {
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                       if (e.key === "Enter") handleTextSubmit();
                     }}
                   />
-                  <button
-                    onClick={handleTextSubmit}
-                    className="px-4 py-2 rounded bg-green-500 text-black font-semibold"
-                  >
+                  <button onClick={handleTextSubmit} className="px-4 py-2 rounded bg-green-500 text-black font-semibold">
                     Submit
                   </button>
                 </div>
@@ -470,9 +332,7 @@ Now the puzzles are going to be more interesting`);
             </div>
 
             <footer className="flex items-center justify-between text-sm opacity-80">
-              <div>
-                Level {level} progress: {index + 1}/{questions.length}
-              </div>
+              <div>Level {level} progress: {index + 1}/{questions.length}</div>
               <div>Score (this level): {scoreByLevel[level] || 0}</div>
             </footer>
           </div>
@@ -490,4 +350,3 @@ Now the puzzles are going to be more interesting`);
     </div>
   );
 }
-
