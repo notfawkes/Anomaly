@@ -4,9 +4,10 @@ import fetch from 'node-fetch';
 const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxaS4dwDTQmMIY5eQFIzjThTdizrlEBdRxdUs1dxSEqBj7r1FEfOiAmzaWGLiGLpFvWqg/exec";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Preflight request
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    const allowedOrigin = "https://anomaly-sigai-p3c5ys5lb-notfawkes-projects.vercel.app";
+
+    if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     return res.status(204).end(); // 204 No Content is better for preflight
