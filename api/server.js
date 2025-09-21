@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxaS4dwDTQmMIY5eQFIzjThTdizrlEBdRxdUs1dxSEqBj7r1FEfOiAmzaWGLiGLpFvWqg/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_tvNLk_XWpo_qgNhIPj65SQIsG6hQtGGgXMqhBlcSorI_mUWOasupR5ioLyEIeRlN/exec";
 
 app.post("/api/login", async (req, res) => {
   try {

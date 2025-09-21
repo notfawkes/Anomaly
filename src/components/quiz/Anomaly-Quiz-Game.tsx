@@ -1,10 +1,6 @@
-/*
-Anomaly-Quiz-Game.tsx
-Updated with background that matches the terminal environment
-*/
-
 import { useEffect, useState } from "react";
 
+// ... (Question type and QUESTION_BANK constant remain the same)
 type Question = {
   id: number;
   text: string;
@@ -46,6 +42,7 @@ const QUESTION_BANK: { level1: Question[]; level2: Question[]; level3: Question[
   ],
 };
 
+
 export default function AnomalyQuiz(): JSX.Element {
   const [level, setLevel] = useState<number>(1);
   const [questions, setQuestions] = useState<Question[]>(QUESTION_BANK.level1);
@@ -56,13 +53,39 @@ export default function AnomalyQuiz(): JSX.Element {
   const [unlockMessage, setUnlockMessage] = useState<string>("");
   const [finalUnlocked, setFinalUnlocked] = useState<boolean>(false);
 
-  const finalVideoSrc = "/final-video.mp4"; // Replace with your own video file in public/
+  const finalVideoSrc = "/final-video.mp4";
+
+  // MODIFIED: Function now retrieves and sends user data with each update
+  const submitScoreUpdate = async (updateData: { level: number; levelScore: number; totalScore?: number }) => {
+    const gameSessionId = localStorage.getItem('gameSessionId');
+    const name = localStorage.getItem('userName');
+    const password = localStorage.getItem('userPassword');
+
+    if (!gameSessionId || !name || !password) {
+      console.error("User data or Game Session ID not found. Cannot update score.");
+      return;
+    }
+
+    try {
+      await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          gameSessionId,
+          name,      // Sending name with the update
+          password,  // Sending password with the update
+          ...updateData,
+        }),
+      });
+    } catch (error) {
+      console.error('Error submitting score update:', error);
+    }
+  };
 
   useEffect(() => {
     if (level === 1) setQuestions(QUESTION_BANK.level1);
     else if (level === 2) setQuestions(QUESTION_BANK.level2);
     else if (level === 3) setQuestions(QUESTION_BANK.level3);
-
     setIndex(0);
     setSelectedOption(null);
   }, [level]);
@@ -72,15 +95,14 @@ export default function AnomalyQuiz(): JSX.Element {
     setSelectedOption(optionIndex);
 
     const currentQ = questions[index];
-    const isCorrect = optionIndex === currentQ.correctIndex;
-    if (isCorrect) {
-      setScoreByLevel((s) => ({ ...s, [level]: (s[level] || 0) + 1 }));
+    if (optionIndex === currentQ.correctIndex) {
+      const pointsToAdd = level; // Weighted scoring
+      setScoreByLevel((s) => ({ ...s, [level]: (s[level] || 0) + pointsToAdd }));
     }
 
     setTimeout(() => {
-      const nextIndex = index + 1;
-      if (nextIndex < questions.length) {
-        setIndex(nextIndex);
+      if (index + 1 < questions.length) {
+        setIndex(index + 1);
         setSelectedOption(null);
       } else {
         handleLevelComplete();
@@ -89,16 +111,19 @@ export default function AnomalyQuiz(): JSX.Element {
   }
 
   function handleLevelComplete() {
+    const currentLevelScore = scoreByLevel[level] || 0;
+
+    submitScoreUpdate({ level: level, levelScore: currentLevelScore });
+
     setQuestions([]);
     setSelectedOption(null);
 
-    if (level === 1) {
-      setUnlockMessage("Level 2 Unlocked Successfully\nNow the puzzles are going to be more interesting");
+    if (level < 3) {
+      setUnlockMessage(`Level ${level + 1} Unlocked Successfully\nNow the puzzles are going to be more interesting`);
       setShowUnlockScreen(true);
-    } else if (level === 2) {
-      setUnlockMessage("Level 3 Unlocked Successfully\nNow the puzzles are going to be more interesting");
-      setShowUnlockScreen(true);
-    } else if (level === 3) {
+    } else {
+      const totalScore = Object.values(scoreByLevel).reduce((sum, current) => sum + current, 0);
+      submitScoreUpdate({ level: 3, levelScore: currentLevelScore, totalScore: totalScore });
       setFinalUnlocked(true);
     }
   }
@@ -111,10 +136,11 @@ export default function AnomalyQuiz(): JSX.Element {
   }
 
   function restartGame() {
-    setLevel(1);
-    setScoreByLevel({ 1: 0, 2: 0, 3: 0 });
-    setFinalUnlocked(false);
-    setShowUnlockScreen(false);
+    localStorage.removeItem('gameSessionId');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userPassword');
+    // It's better to navigate back to the login page to start a fresh session
+    window.location.href = '/'; // Or your login route
   }
 
   const currentQuestion = questions[index];
