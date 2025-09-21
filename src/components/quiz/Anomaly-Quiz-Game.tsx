@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import skullImg from "./skull.png"; 
 
-// ... (Question type and QUESTION_BANK constant remain the same)
 type Question = {
   id: number;
   text: string;
   options?: string[]; // Level 1 & 3
   correctIndex?: number; // Level 1 & 3
-  correctKeywords?: string[]; // Level 2 (loose matching)
+  correctKeywords?: string[]; // Level 2
 };
+
+const chars =
+  "アァイィウヴエェオカキクケコサシスセソタチツテトABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 const QUESTION_BANK: { level1: Question[]; level2: Question[]; level3: Question[] } = {
   // 50 amplitude-based MCQs
@@ -128,6 +131,7 @@ const QUESTION_BANK: { level1: Question[]; level2: Question[]; level3: Question[
   ]
 };
 
+// --- helper to pick random questions ---
 function getRandomSubset<T>(arr: T[], count: number): T[] {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -150,70 +154,39 @@ export default function AnomalyQuiz(): JSX.Element {
 
   const finalVideoSrc = "/final-video.mp4";
 
-  // MODIFIED: Function now retrieves and sends user data with each update
-  const submitScoreUpdate = async (updateData: { level: number; levelScore: number; totalScore?: number }) => {
-    const gameSessionId = localStorage.getItem('gameSessionId');
-    const name = localStorage.getItem('userName');
-    const password = localStorage.getItem('userPassword');
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const skullCanvasRef = useRef<HTMLCanvasElement>(null);
 
-    if (!gameSessionId || !name || !password) {
-      console.error("User data or Game Session ID not found. Cannot update score.");
-      return;
-    }
-
-    try {
-      await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          gameSessionId,
-          name,      // Sending name with the update
-          password,  // Sending password with the update
-          ...updateData,
-        }),
-      });
-    } catch (error) {
-      console.error('Error submitting score update:', error);
-    }
-  };
-
+  // --- set up questions per level ---
   useEffect(() => {
-    // choose random 10 for levels 1 & 2; keep level3 as-is
     if (level === 1) setQuestions(getRandomSubset(QUESTION_BANK.level1, 10));
     else if (level === 2) setQuestions(getRandomSubset(QUESTION_BANK.level2, 10));
     else if (level === 3) setQuestions(QUESTION_BANK.level3);
+
     setIndex(0);
     setSelectedOption(null);
     setTextAnswer("");
   }, [level]);
 
+  // --- handle answers ---
   function handleOptionClick(optionIndex: number) {
-    if (selectedOption !== null) return; // prevent multiple clicks
+    if (selectedOption !== null) return;
 
     setSelectedOption(optionIndex);
     const currentQ = questions[index];
     const isCorrect = currentQ.correctIndex !== undefined && optionIndex === currentQ.correctIndex;
-    if (isCorrect) {
-      setScoreByLevel((s) => ({ ...s, [level]: (s[level] || 0) + 1 }));
-    }
+    if (isCorrect) setScoreByLevel((s) => ({ ...s, [level]: (s[level] || 0) + 1 }));
 
-    setTimeout(() => {
-      goNextQuestion();
-    }, 1500); // Increased delay for better visual feedback
+    setTimeout(() => goNextQuestion(), 1200);
   }
 
   function handleTextSubmit() {
-    if (!textAnswer.trim()) return; // ignore blank
-
+    if (!textAnswer.trim()) return;
     const currentQ = questions[index];
     const user = textAnswer.trim().toLowerCase();
     const keywords = currentQ.correctKeywords || [];
-
-    // Loose matching: correct if any keyword is included
     const isCorrect = keywords.some((kw) => user.includes(kw.toLowerCase()));
-    if (isCorrect) {
-      setScoreByLevel((s) => ({ ...s, [level]: (s[level] || 0) + 1 }));
-    }
+    if (isCorrect) setScoreByLevel((s) => ({ ...s, [level]: (s[level] || 0) + 1 }));
 
     setTextAnswer("");
     goNextQuestion();
@@ -231,20 +204,18 @@ export default function AnomalyQuiz(): JSX.Element {
   }
 
   function handleLevelComplete() {
-    const currentLevelScore = scoreByLevel[level] || 0;
-
-    submitScoreUpdate({ level: level, levelScore: currentLevelScore });
-
     setQuestions([]);
     setSelectedOption(null);
 
-    if (level < 3) {
-      setUnlockMessage(`Level ${level + 1} Unlocked Successfully\nNow the puzzles are going to be more interesting`);
+    if (level === 1) {
+      setUnlockMessage("LEVEL 1 COMPLETE ✅\nTHE SKULL AWAKENS...");
       setShowUnlockScreen(true);
-    } else {
-      const totalScore = Object.values(scoreByLevel).reduce((sum, current) => sum + current, 0);
-      submitScoreUpdate({ level: 3, levelScore: currentLevelScore, totalScore: totalScore });
-      setFinalUnlocked(true);
+    } else if (level === 2) {
+      setUnlockMessage("LEVEL 2 COMPLETE ✅\nTHE RED SKULL EMERGES 🔥");
+      setShowUnlockScreen(true);
+    } else if (level === 3) {
+      setUnlockMessage("LEVEL 3 COMPLETE ✅\nTHE FINAL PORTAL IS UNLOCKED!");
+      setShowUnlockScreen(true);
     }
   }
 
@@ -253,34 +224,154 @@ export default function AnomalyQuiz(): JSX.Element {
     setSelectedOption(null);
     if (level === 1) setLevel(2);
     else if (level === 2) setLevel(3);
+    else if (level === 3) setFinalUnlocked(true);
   }
 
   function restartGame() {
-    localStorage.removeItem('gameSessionId');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userPassword');
-    // It's better to navigate back to the login page to start a fresh session
-    window.location.href = '/'; // Or your login route
+    setLevel(1);
+    setScoreByLevel({ 1: 0, 2: 0, 3: 0 });
+    setFinalUnlocked(false);
+    setShowUnlockScreen(false);
   }
 
   const currentQuestion = questions[index];
 
+  // --- matrix background effect ---
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const fontSize = 16;
+    const columns = Math.floor(canvas.width / fontSize);
+    const drops = Array(columns).fill(1);
+
+    let animationId: number;
+    const draw = () => {
+      ctx.fillStyle = "rgba(0,0,0,0.08)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "rgba(0,255,0,0.35)";
+      ctx.font = `${fontSize}px monospace`;
+      drops.forEach((y, i) => {
+        const text = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(text, i * fontSize, y * fontSize);
+        if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      });
+      animationId = requestAnimationFrame(draw);
+    };
+    draw();
+
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  // --- skull effect (green L1, red L2) ---
+  useEffect(() => {
+    if (!showUnlockScreen || (level !== 1 && level !== 2)) return;
+
+    const canvas = skullCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const width = canvas.width;
+    const height = canvas.height;
+
+    const img = new Image();
+    img.src = skullImg;
+
+    let animationId: number;
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, width, height);
+      const imageData = ctx.getImageData(0, 0, width, height);
+      ctx.clearRect(0, 0, width, height);
+
+      const points: { x: number; y: number }[] = [];
+      for (let y = 0; y < height; y += 6) {   // bigger step (fewer points)
+        for (let x = 0; x < width; x += 6) {
+          const idx = (y * width + x) * 4;
+          const r = imageData.data[idx];
+          const g = imageData.data[idx + 1];
+          const b = imageData.data[idx + 2];
+          const a = imageData.data[idx + 3];
+          const brightness = (r + g + b) / 3;
+        if (a > 100 && brightness > 100) points.push({ x, y });
+  }
+}
+
+        let t = 0;
+function animate() {
+  ctx.clearRect(0, 0, width, height);
+  points.forEach((p, i) => {
+    const dx = Math.sin(t / 15 + i) * 1.2;
+    const dy = Math.cos(t / 18 + i) * 1.2;
+    const size = 1.2 + Math.sin(t / 20 + i) * 0.5;
+
+    ctx.beginPath();
+    ctx.arc(p.x + dx, p.y + dy, size, 0, Math.PI * 2);
+
+    if (level === 1) {
+      ctx.fillStyle = `rgba(0,255,0,${0.6 + Math.random() * 0.4})`;
+      ctx.shadowColor = "lime";
+    } else {
+      ctx.fillStyle = `rgba(255,0,0,${0.6 + Math.random() * 0.4})`;
+      ctx.shadowColor = "red";
+    }
+
+    ctx.shadowBlur = 4; // reduced blur
+    ctx.fill();
+  });
+
+  t++;
+  setTimeout(() => requestAnimationFrame(animate), 33); // ~30fps
+}
+animate();
+
+    };
+
+    return () => {
+      if (animationId) cancelAnimationFrame(animationId);
+    };
+  }, [showUnlockScreen, level]);
+
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-green-900 via-black to-green-900 text-white p-6">
-      <div className="w-full max-w-4xl bg-black/70 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-green-400">
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-black overflow-hidden">
+      <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full z-0 pointer-events-none" />
+
+      <div className="relative w-full max-w-4xl bg-black/70 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-green-400 z-20">
         <header className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-semibold text-green-400">Anomaly — Puzzle Levels</h2>
           <div className="text-sm opacity-80">
-            Level: <span className="font-bold text-green-300">{level}</span> &nbsp;|&nbsp; Score: <span className="font-bold text-green-300">{scoreByLevel[level] || 0}</span>
+            Level: <span className="font-bold text-green-300">{level}</span> | Score:{" "}
+            <span className="font-bold text-green-300">{scoreByLevel[level] || 0}</span>
           </div>
         </header>
 
         {showUnlockScreen && (
           <div className="text-center py-12">
             <h3 className="text-2xl font-bold mb-4 text-green-400">{unlockMessage.split("\n")[0]}</h3>
+            {(level === 1 || level === 2) && (
+              <canvas ref={skullCanvasRef} width={300} height={360} className="mx-auto mb-6" />
+            )}
             <p className="mb-6 whitespace-pre-line">{unlockMessage.split("\n")[1]}</p>
-            <button onClick={startNextLevel} className="px-6 py-2 rounded-lg bg-gradient-to-r from-green-400 to-green-600 text-black font-semibold shadow-md">
-              Start Level {level + 1}
+            <button
+              onClick={startNextLevel}
+              className="px-6 py-2 rounded-lg bg-gradient-to-r from-green-400 to-green-600 text-black font-semibold shadow-md"
+            >
+              {level < 3 ? `Start Level ${level + 1}` : "Unlock Final Portal"}
             </button>
           </div>
         )}
@@ -288,7 +379,9 @@ export default function AnomalyQuiz(): JSX.Element {
         {finalUnlocked && (
           <div className="text-center py-8">
             <h1 className="text-2xl font-extrabold mb-4 text-green-400">YOU HAVE SUCCESSFULLY UNLOCKED THE PORTAL 🔓✨</h1>
-            <p className="mb-6">You have completed all puzzle levels. The final enigma is solved.</p>
+            <div className="mx-auto max-w-2xl">
+              <video src={finalVideoSrc} controls autoPlay className="w-full rounded-lg shadow-lg" />
+            </div>
             <div className="mt-6">
               <button onClick={restartGame} className="px-5 py-2 rounded bg-green-500 text-black font-medium">
                 Play Again
@@ -311,21 +404,16 @@ export default function AnomalyQuiz(): JSX.Element {
                   {currentQuestion.options.map((opt, i) => {
                     const isSelected = selectedOption === i;
                     const isCorrect = currentQuestion.correctIndex !== undefined && i === currentQuestion.correctIndex;
-                    const baseClass = "px-4 py-3 rounded-lg border cursor-pointer text-left font-medium transition-all duration-300";
+                    const baseClass =
+                      "px-4 py-3 rounded-lg border cursor-pointer text-left font-medium transition-all duration-300";
                     let extra = "border-green-500/30 bg-green-900/20";
-
                     if (selectedOption !== null) {
-                      if (isCorrect) {
-                        extra = "border-green-400 bg-green-500/20 scale-105"; // Correct answer is always green
-                      } else if (isSelected && !isCorrect) {
-                        extra = "border-red-400 bg-red-500/10 scale-95"; // Incorrect selection is red
-                      } else {
-                        extra = "opacity-70"; // Other options are faded
-                      }
+                      if (isCorrect) extra = "border-green-400 bg-green-500/20 scale-105";
+                      else if (isSelected && !isCorrect) extra = "border-red-400 bg-red-500/10 scale-95";
+                      else extra = "opacity-70";
                     } else {
                       extra = "hover:scale-[1.01] transition-transform";
                     }
-
                     return (
                       <button
                         key={i}
@@ -334,7 +422,9 @@ export default function AnomalyQuiz(): JSX.Element {
                         disabled={selectedOption !== null}
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 flex items-center justify-center rounded-full bg-green-800/40 text-sm">{String.fromCharCode(65 + i)}</div>
+                          <div className="w-8 h-8 flex items-center justify-center rounded-full bg-green-800/40 text-sm">
+                            {String.fromCharCode(65 + i)}
+                          </div>
                           <div>{opt}</div>
                         </div>
                       </button>
@@ -355,7 +445,10 @@ export default function AnomalyQuiz(): JSX.Element {
                       if (e.key === "Enter") handleTextSubmit();
                     }}
                   />
-                  <button onClick={handleTextSubmit} className="px-4 py-2 rounded bg-green-500 text-black font-semibold">
+                  <button
+                    onClick={handleTextSubmit}
+                    className="px-4 py-2 rounded bg-green-500 text-black font-semibold"
+                  >
                     Submit
                   </button>
                 </div>
