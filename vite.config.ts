@@ -9,7 +9,7 @@ export default defineConfig({
       // This tells Vite to forward any request to '/api'
       '/api': {
         // This should be the address of your Vercel dev server
-        target: 'http://localhost:5000', 
+        target: 'https://anomaly-nine.vercel.app/', 
         changeOrigin: true,
         // Optional: You can remove '/api' from the forwarded request if needed
         // rewrite: (path) => path.replace(/^\/api/, ''), 
