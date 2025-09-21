@@ -1,4 +1,3 @@
-// src/components/Anomaly-Quiz-Game.tsx
 import React, { useEffect, useState } from "react";
 
 type Question = {
@@ -209,10 +208,10 @@ export default function AnomalyQuiz(): JSX.Element {
     setSelectedOption(null);
 
     if (level === 1) {
-      setUnlockMessage("Level 2 Unlocked Successfully\nNow the puzzles are going to be more interesting");
+      setUnlockMessage("UNLOCKED SUCCESSFULLY\nNOW THE THE PUZZLES ARE GONNA BE MORE INTRESTING");
       setShowUnlockScreen(true);
     } else if (level === 2) {
-      setUnlockMessage("Level 3 Unlocked Successfully\nNow the puzzles are going to be more interesting");
+      setUnlockMessage("UNLOCKED SUCCESSFULLY\nNOW THE THE PUZZLES ARE GONNA BE MORE INTRESTING");
       setShowUnlockScreen(true);
     } else if (level === 3) {
       setFinalUnlocked(true);
@@ -257,7 +256,7 @@ export default function AnomalyQuiz(): JSX.Element {
 
         {finalUnlocked && (
           <div className="text-center py-8">
-            <h1 className="text-2xl font-extrabold mb-4 text-green-400">You have successfully Unlocked the portal! 🔓✨</h1>
+            <h1 className="text-2xl font-extrabold mb-4 text-green-400">YOU HAVE SUCCESSFULLY UNLOCKED THE PORTAL 🔓✨</h1>
             <p className="mb-6">Enjoy the final reveal. (Replace the video file in public folder at {finalVideoSrc})</p>
             <div className="mx-auto max-w-2xl">
               <video src={finalVideoSrc} controls autoPlay className="w-full rounded-lg shadow-lg border border-green-400" />
@@ -279,7 +278,7 @@ export default function AnomalyQuiz(): JSX.Element {
             <div className="p-6 rounded-lg mb-4 border border-green-500/30 bg-black/30">
               <div className="text-lg font-semibold mb-4 text-green-200">{currentQuestion.text}</div>
 
-              {level === 1 && currentQuestion.options && (
+              {(level === 1 || level === 3) && currentQuestion.options && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {currentQuestion.options.map((opt, i) => {
                     const isSelected = selectedOption === i;
@@ -298,7 +297,7 @@ export default function AnomalyQuiz(): JSX.Element {
                     return (
                       <button
                         key={i}
-                        className={`${baseClass} ${extra}`}
+                        className={'${baseClass} ${extra}'}
                         onClick={() => handleOptionClick(i)}
                         disabled={selectedOption !== null}
                       >
