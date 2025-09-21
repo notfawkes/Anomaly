@@ -84,7 +84,7 @@ const Terminal: React.FC = () => {
     setTimeout(() => {
       setHistory((prev) => [
         ...prev,
-        ...responses.map((res) => ({ type: "system", content: res })),
+        ...responses.map((res) => ({ type: "system" as const, content: res, glitch: false })),
       ]);
       setCommandLock(false);
     }, 500);

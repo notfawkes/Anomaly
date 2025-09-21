@@ -1,0 +1,39 @@
+/* src/pages/Login.css */
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+    font-family: 'VT323', monospace;
+}
+
+.login-box {
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(5px);
+    border: 1px solid #00ff00;
+    padding: 40px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 0 25px rgba(0, 255, 0, 0.4);
+    text-align: center;
+    animation: fadeIn 1.5s ease-in-out;
+}
+
+/* ... (rest of the CSS from the previous response) ... */
+.title { font-size: 3.5rem; color: #00ff00; text-shadow: 0 0 10px #00ff00; margin: 0 0 10px; }
+.subtitle { font-size: 1.5rem; color: #c653ff; margin: 0 0 40px; letter-spacing: 2px; }
+.input-group { margin-bottom: 25px; text-align: left; }
+.input-group label { display: block; margin-bottom: 8px; font-size: 1.2rem; color: #00ff00; }
+.input-group input { width: 100%; padding: 12px; box-sizing: border-box; background: transparent; border: none; border-bottom: 1px solid #00ff00; color: #00ff00; font-family: 'VT323', monospace; font-size: 1.3rem; outline: none; }
+.input-group input:-webkit-autofill { -webkit-box-shadow: 0 0 0 30px #080808 inset !important; -webkit-text-fill-color: #00ff00 !important; caret-color: #00ff00; }
+.login-button { background: transparent; border: 2px solid #00ff00; color: #00ff00; padding: 10px 20px; font-family: 'VT323', monospace; font-size: 1.4rem; cursor: pointer; transition: all 0.3s ease; width: 100%; letter-spacing: 1px; }
+.login-button:hover { background: #00ff00; color: #000; box-shadow: 0 0 20px #00ff00; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
