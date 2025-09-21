@@ -1,16 +1,15 @@
-/*
-Anomaly-Quiz-Game.tsx
-Updated with background that matches the terminal environment
-*/
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import skullImg from "./skull.png"; // put skull.png in same folder
 
 type Question = {
   id: number;
   text: string;
   options: string[];
-  correctIndex: number; // index into options
+  correctIndex: number;
 };
+
+const chars =
+  "アァイィウヴエェオカキクケコサシスセソタチツテトABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 const QUESTION_BANK: { level1: Question[]; level2: Question[]; level3: Question[] } = {
   level1: [
@@ -56,7 +55,9 @@ export default function AnomalyQuiz(): JSX.Element {
   const [unlockMessage, setUnlockMessage] = useState<string>("");
   const [finalUnlocked, setFinalUnlocked] = useState<boolean>(false);
 
-  const finalVideoSrc = "/final-video.mp4"; // Replace with your own video file in public/
+  const finalVideoSrc = "/final-video.mp4";
+
+  const skullCanvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (level === 1) setQuestions(QUESTION_BANK.level1);
@@ -96,7 +97,7 @@ export default function AnomalyQuiz(): JSX.Element {
       setUnlockMessage("Level 2 Unlocked Successfully\nNow the puzzles are going to be more interesting");
       setShowUnlockScreen(true);
     } else if (level === 2) {
-      setUnlockMessage("Level 3 Unlocked Successfully\nNow the puzzles are going to be more interesting");
+      setUnlockMessage("Level 3 Unlocked Successfully\nNow the puzzles are going to be more intense 🔥");
       setShowUnlockScreen(true);
     } else if (level === 3) {
       setFinalUnlocked(true);
@@ -119,19 +120,160 @@ export default function AnomalyQuiz(): JSX.Element {
 
   const currentQuestion = questions[index];
 
+  // glitchy matrix background
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const fontSize = 16;
+    const columns = Math.floor(canvas.width / fontSize);
+    const drops = Array(columns).fill(1);
+
+    let animationFrame: number;
+
+    const draw = () => {
+      if (!ctx) return;
+
+      ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "rgba(0, 255, 0, 0.25)";
+      ctx.font = `${fontSize}px monospace`;
+
+      drops.forEach((y, i) => {
+        const text = chars[Math.floor(Math.random() * chars.length)];
+        ctx.fillText(text, i * fontSize, y * fontSize);
+
+        if (y * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      });
+
+      animationFrame = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showUnlockScreen || (level !== 1 && level !== 2)) return;
+
+    const canvas = skullCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const width = canvas.width;
+    const height = canvas.height;
+
+    const img = new Image();
+    img.src = skullImg;
+
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, width, height);
+      const imageData = ctx.getImageData(0, 0, width, height);
+      ctx.clearRect(0, 0, width, height);
+
+      const points: { x: number; y: number }[] = [];
+
+      for (let y = 0; y < height; y += 3) {
+        for (let x = 0; x < width; x += 3) {
+          const idx = (y * width + x) * 4;
+          const r = imageData.data[idx];
+          const g = imageData.data[idx + 1];
+          const b = imageData.data[idx + 2];
+          const a = imageData.data[idx + 3];
+
+          const brightness = (r + g + b) / 3;
+
+          if (a > 100 && brightness > 100) {
+            points.push({ x, y });
+          }
+        }
+      }
+
+      let t = 0;
+      const animate = () => {
+        ctx.clearRect(0, 0, width, height);
+
+        points.forEach((p, i) => {
+          const dx = Math.sin(t / 15 + i) * 1.5;
+          const dy = Math.cos(t / 18 + i) * 1.5;
+          const size = 1.5 + Math.sin(t / 20 + i) * 0.8;
+
+          ctx.beginPath();
+          ctx.arc(p.x + dx, p.y + dy, size, 0, Math.PI * 2);
+
+          // 🔥 color depends on level
+          if (level === 1) {
+            ctx.fillStyle = `rgba(0, 255, 0, ${0.6 + Math.random() * 0.4})`; // green
+            ctx.shadowColor = "lime";
+          } else if (level === 2) {
+            ctx.fillStyle = `rgba(255, 0, 0, ${0.6 + Math.random() * 0.4})`; // red
+            ctx.shadowColor = "red";
+          }
+
+          ctx.shadowBlur = 12;
+          ctx.fill();
+        });
+
+        t++;
+        requestAnimationFrame(animate);
+      };
+
+      animate();
+    };
+  }, [showUnlockScreen, level]);
+
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-black via-[#0a0a1a] to-black text-white">
-      <div className="w-full max-w-3xl bg-black/70 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/10">
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-black overflow-hidden">
+      <canvas
+        ref={canvasRef}
+        className="absolute top-0 left-0 w-full h-full z-0 pointer-events-none"
+      />
+
+      <div className="relative w-full max-w-3xl bg-black/70 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/10 z-20">
         <header className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Anomaly — Puzzle Levels</h2>
           <div className="text-sm opacity-80">
-            Level: <span className="font-bold">{level}</span> &nbsp;|&nbsp; Score: <span className="font-bold">{scoreByLevel[level] || 0}</span>
+            Level: <span className="font-bold">{level}</span> &nbsp;|&nbsp; Score:{" "}
+            <span className="font-bold">{scoreByLevel[level] || 0}</span>
           </div>
         </header>
 
         {showUnlockScreen && (
           <div className="text-center py-16">
             <h3 className="text-2xl font-bold mb-4">{unlockMessage.split("\n")[0]}</h3>
+
+            {(level === 1 || level === 2) && (
+              <canvas
+                ref={skullCanvasRef}
+                width={300}
+                height={360}
+                className="mx-auto mb-6"
+              />
+            )}
+
             <p className="mb-6 whitespace-pre-line">{unlockMessage.split("\n")[1]}</p>
             <button
               onClick={startNextLevel}
@@ -144,8 +286,12 @@ export default function AnomalyQuiz(): JSX.Element {
 
         {finalUnlocked && (
           <div className="text-center py-8">
-            <h1 className="text-2xl font-extrabold mb-4">You have successfully Unlocked the portal! 🔓✨</h1>
-            <p className="mb-6">Enjoy the final reveal. (Replace the video file in public folder at {finalVideoSrc})</p>
+            <h1 className="text-2xl font-extrabold mb-4">
+              You have successfully Unlocked the portal! 🔓✨
+            </h1>
+            <p className="mb-6">
+              Enjoy the final reveal. (Replace the video file in public folder at {finalVideoSrc})
+            </p>
             <div className="mx-auto max-w-2xl">
               <video src={finalVideoSrc} controls autoPlay className="w-full rounded-lg shadow-lg" />
             </div>
@@ -221,3 +367,4 @@ export default function AnomalyQuiz(): JSX.Element {
     </div>
   );
 }
+
