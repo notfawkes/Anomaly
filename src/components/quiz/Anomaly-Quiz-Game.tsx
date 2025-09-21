@@ -4,50 +4,145 @@ import { useEffect, useState } from "react";
 type Question = {
   id: number;
   text: string;
-  options: string[];
-  correctIndex: number; // index into options
+  options?: string[]; // Level 1 & 3
+  correctIndex?: number; // Level 1 & 3
+  correctKeywords?: string[]; // Level 2 (loose matching)
 };
 
 const QUESTION_BANK: { level1: Question[]; level2: Question[]; level3: Question[] } = {
+  // 50 amplitude-based MCQs
   level1: [
-    { id: 1, text: "What is 5 + 7?", options: ["10", "11", "12", "13"], correctIndex: 2 },
-    { id: 2, text: "Which is the largest planet in our solar system?", options: ["Earth", "Mars", "Jupiter", "Venus"], correctIndex: 2 },
-    { id: 3, text: "What color do you get when you mix red and white?", options: ["Pink", "Purple", "Orange", "Brown"], correctIndex: 0 },
-    { id: 4, text: "If you have 3 apples and you double them, how many apples now?", options: ["5", "6", "7", "8"], correctIndex: 1 },
-    { id: 5, text: "Which shape has 3 sides?", options: ["Square", "Triangle", "Circle", "Rectangle"], correctIndex: 1 },
-    { id: 6, text: "Which of the following is a prime number?", options: ["9", "12", "13", "15"], correctIndex: 2 },
-    { id: 7, text: "Which direction is opposite of East?", options: ["North", "South", "West", "Up"], correctIndex: 2 },
-    { id: 8, text: "How many hours are there in two days?", options: ["24", "36", "48", "72"], correctIndex: 2 },
-    { id: 9, text: "Which animal is known as 'King of the jungle'?", options: ["Elephant", "Lion", "Tiger", "Bear"], correctIndex: 1 },
-    { id: 10, text: "What is the capital of France?", options: ["Madrid", "Berlin", "Paris", "Rome"], correctIndex: 2 },
+    { id: 1, text: "Amplitude is the measure of:", options: ["Frequency of wave", "Maximum displacement from equilibrium", "Wavelength", "Wave speed"], correctIndex: 1 },
+    { id: 2, text: "Which unit can represent amplitude for displacement waves?", options: ["Meters (m)", "Hertz (Hz)", "Seconds (s)", "Meters/second (m/s)"], correctIndex: 0 },
+    { id: 3, text: "Increasing amplitude of a sound wave will make it sound:", options: ["Lower pitch", "Shorter", "Louder", "Longer"], correctIndex: 2 },
+    { id: 4, text: "In a transverse wave, amplitude is measured from:", options: ["One trough to other trough", "Crest to equilibrium", "One crest to next crest", "Two successive troughs"], correctIndex: 1 },
+    { id: 5, text: "If amplitude doubles, the energy transported by a wave (approximately) becomes:", options: ["Double", "Quadruple", "Halved", "Unchanged"], correctIndex: 1 },
+    { id: 6, text: "Amplitude in simple harmonic motion is determined by:", options: ["Mass only", "Initial displacement/conditions", "Friction only", "Time only"], correctIndex: 1 },
+    { id: 7, text: "The amplitude of an electromagnetic wave corresponds to:", options: ["Electric/magnetic field strength", "Particle displacement", "Pressure variation", "Temperature"], correctIndex: 0 },
+    { id: 8, text: "A seismic wave with larger amplitude indicates:", options: ["Smaller earthquake", "Stronger earthquake", "Faster quake", "No relation"], correctIndex: 1 },
+    { id: 9, text: "Which of these does amplitude NOT affect?", options: ["Loudness of sound", "Energy carried by wave", "Frequency (pitch)", "Signal strength"], correctIndex: 2 },
+    { id: 10, text: "Amplitude is half of which measurement in a wave?", options: ["Crest-to-trough distance", "Wavelength", "Wave period", "Frequency"], correctIndex: 0 },
+    { id: 11, text: "In a graph of displacement vs time for SHM, amplitude is the:", options: ["Frequency of oscillation", "Maximum y-value (positive or negative)", "Slope at t=0", "Average value"], correctIndex: 1 },
+    { id: 12, text: "Which instrument measures amplitude of sound?", options: ["Thermometer", "Ammeter", "Sound level meter (decibel meter)", "Odometer"], correctIndex: 2 },
+    { id: 13, text: "If two waves of equal frequency but different amplitudes interfere, the amplitude of the resultant depends on:", options: ["Relative phase", "Absolute phase only", "Wavelength only", "Frequency only"], correctIndex: 0 },
+    { id: 14, text: "For a sinusoidal wave y = A sin(ωt), A represents:", options: ["Angular frequency", "Amplitude", "Phase", "Wave number"], correctIndex: 1 },
+    { id: 15, text: "In optics, amplitude of light wave relates to:", options: ["Color (wavelength)", "Intensity (brightness)", "Polarization", "Speed"], correctIndex: 1 },
+    { id: 16, text: "Doubling amplitude of a sound wave will change perceived loudness approximately by:", options: ["Twice as loud (perception linear)", "About +6 dB (power-related)", "No change", "Lower pitch"], correctIndex: 1 },
+    { id: 17, text: "A wave’s amplitude is independent of which property?", options: ["Energy", "Initial displacement", "Frequency (in many cases)", "Medium density always"], correctIndex: 2 },
+    { id: 18, text: "Which of these best describes peak amplitude?", options: ["Distance from crest to trough", "Distance from equilibrium to crest", "Time between peaks", "Wavelength"], correctIndex: 1 },
+    { id: 19, text: "Amplitude modulation (AM) in radio uses amplitude to encode:", options: ["Frequency information only", "Signal information (audio)", "Time of arrival", "Polarization"], correctIndex: 1 },
+    { id: 20, text: "If two identical waves are in phase, the resulting amplitude when they meet is:", options: ["Zero", "Sum of amplitudes (constructive)", "Difference of amplitudes", "Unchanged"], correctIndex: 1 },
+    { id: 21, text: "Which physical quantity for transverse waves is analogous to amplitude for longitudinal waves?", options: ["Displacement for transverse, compression for longitudinal", "Wavelength for both", "Frequency only", "Period only"], correctIndex: 0 },
+    { id: 22, text: "Amplitude envelope of a wavepacket describes:", options: ["Local amplitude variation (overall shape)", "Frequency only", "Speed only", "Phase only"], correctIndex: 0 },
+    { id: 23, text: "In mechanical oscillators, damping causes amplitude to:", options: ["Increase exponentially", "Decrease with time", "Remain constant", "Become infinite"], correctIndex: 1 },
+    { id: 24, text: "Which term is typically used to express amplitude of sound in engineering?", options: ["Meters", "Volts", "Decibels (dB)", "Watts"], correctIndex: 2 },
+    { id: 25, text: "Amplitude-phase relationship: changing amplitude while keeping phase constant will affect:", options: ["Frequency", "Signal strength/intensity", "Time period", "Wavelength"], correctIndex: 1 },
+    { id: 26, text: "In a wave y(x,t)=2 cos(kx - ωt), the amplitude is:", options: ["k", "ω", "2", "kx - ωt"], correctIndex: 2 },
+    { id: 27, text: "True or False: Amplitude can be negative in SHM graphs (sign indicates direction).", options: ["True", "False", "Depends", "None"], correctIndex: 0 },
+    { id: 28, text: "Which parameter would you change to change amplitude in a vibrating string?", options: ["Tension only", "Initial pluck displacement", "Wavelength only", "Period only"], correctIndex: 1 },
+    { id: 29, text: "The amplitude spectrum of a signal shows what?", options: ["Phase vs time", "Amplitude vs frequency", "Wavelength vs amplitude", "Time vs frequency"], correctIndex: 1 },
+    { id: 30, text: "Sound amplitude is most directly related to which human perception?", options: ["Pitch", "Loudness", "Timbre", "Duration"], correctIndex: 1 },
+    { id: 31, text: "Amplitude and intensity relation (for many waves):", options: ["Intensity ∝ amplitude", "Intensity ∝ amplitude^2", "Intensity ∝ 1/amplitude", "No relation"], correctIndex: 1 },
+    { id: 32, text: "Which phenomenon can reduce amplitude over time?", options: ["Resonance", "Damping", "Constructive interference", "Amplification"], correctIndex: 1 },
+    { id: 33, text: "In electronics, amplitude of a voltage signal is measured in:", options: ["Ohms", "Volts", "Amperes", "Farads"], correctIndex: 1 },
+    { id: 34, text: "If amplitude = 0 for an oscillation, that means:", options: ["Maximum motion", "No oscillation (particle at equilibrium)", "Infinite energy", "Undefined"], correctIndex: 1 },
+    { id: 35, text: "Which operation increases amplitude in an amplifier stage?", options: ["Attenuation", "Gain", "Filtering", "Rectifying"], correctIndex: 1 },
+    { id: 36, text: "Amplitude in a standing wave is highest at:", options: ["Nodes", "Antinodes", "Midpoint only", "All points equal"], correctIndex: 1 },
+    { id: 37, text: "Amplitude is usually represented by which letter in y = A sin(ωt + φ)?", options: ["ω", "A", "φ", "t"], correctIndex: 1 },
+    { id: 38, text: "A wave transmitting more energy will likely have:", options: ["Smaller amplitude", "Larger amplitude", "Same amplitude always", "Lower frequency always"], correctIndex: 1 },
+    { id: 39, text: "When two waves of equal amplitude are exactly out of phase, they:", options: ["Double in amplitude", "Cancel each other (destructive)", "Form standing wave", "Change frequency"], correctIndex: 1 },
+    { id: 40, text: "Which of these signals has amplitude information that changes over time?", options: ["Constant DC", "AM signal", "Pure tone of fixed amplitude", "None"], correctIndex: 1 },
+    { id: 41, text: "Amplitude in AC electricity refers to:", options: ["Peak voltage/current", "Average power only", "Resistance", "Frequency"], correctIndex: 0 },
+    { id: 42, text: "In medical ultrasounds, amplitude affects:", options: ["Image color only", "Echo strength (brightness)", "Machine cost", "Scan duration"], correctIndex: 1 },
+    { id: 43, text: "Amplitude of a pulse can be reduced by:", options: ["Gain", "Attenuation", "Amplification", "Resonance"], correctIndex: 1 },
+    { id: 44, text: "True or False: Amplitude determines the pitch of a sound.", options: ["True", "False", "Sometimes", "Depends on medium"], correctIndex: 1 },
+    { id: 45, text: "If two sinusoidal signals are added, the resulting amplitude depends on their:", options: ["Relative phase and amplitudes", "Wavelength only", "Frequency only", "Medium only"], correctIndex: 0 },
+    { id: 46, text: "Which physical quantity is proportional to amplitude squared in many wave types?", options: ["Wavelength", "Energy or intensity", "Period", "Phase"], correctIndex: 1 },
+    { id: 47, text: "Amplitude of a damped oscillator decays typically as:", options: ["Exponential decay", "Linear increase", "Sinusoidal only", "Constant"], correctIndex: 0 },
+    { id: 48, text: "For a standing wave on a string, amplitude at a node is:", options: ["Maximum", "Minimum (zero)", "Undefined", "Equal to antinode"], correctIndex: 1 },
+    { id: 49, text: "Which of these would you change to increase amplitude of a driven oscillator?", options: ["Drive amplitude (input)", "Time period only", "Wavelength only", "Frequency only"], correctIndex: 0 },
+    { id: 50, text: "Amplitude is fundamentally a measure of:", options: ["Temporal frequency", "Spatial phase", "Magnitude of oscillation/displacement", "Temperature"], correctIndex: 2 }
   ],
+
+  // 50 DSA questions (level2) with loose keyword arrays
   level2: [
-    { id: 1, text: "If 3x = 12, what is x?", options: ["2", "3", "4", "6"], correctIndex: 2 },
-    { id: 2, text: "A clock shows 3:15. What angle is between hour and minute hand?", options: ["0°", "7.5°", "15°", "90°"], correctIndex: 1 },
-    { id: 3, text: "Which word is an anagram of 'listen'?", options: ["silent", "enlist", "inlets", "all of the above"], correctIndex: 3 },
-    { id: 4, text: "Which number is both a perfect square and a perfect cube?", options: ["64", "36", "16", "8"], correctIndex: 0 },
-    { id: 5, text: "If you take the next letter after Z, which letter follows in a circular alphabet?", options: ["A", "Z", "B", "None"], correctIndex: 0 },
-    { id: 6, text: "What is the binary for decimal 5?", options: ["101", "010", "011", "100"], correctIndex: 0 },
-    { id: 7, text: "Solve: 15 ÷ 3 × 2 = ?", options: ["10", "5", "20", "30"], correctIndex: 0 },
-    { id: 8, text: "Which shape has 4 equal sides and 4 right angles?", options: ["Rhombus", "Rectangle", "Square", "Parallelogram"], correctIndex: 2 },
-    { id: 9, text: "What comes next in the Fibonacci sequence: 1,1,2,3,5,8,?", options: ["13", "12", "11", "10"], correctIndex: 0 },
-    { id: 10, text: "Which element has chemical symbol 'O'?", options: ["Gold", "Oxygen", "Iron", "Hydrogen"], correctIndex: 1 },
+    { id: 1, text: "Describe push and pop operations in a stack. GIVE YOUR ANSWER", correctKeywords: ["lifo", "push", "pop", "last in first out"] },
+    { id: 2, text: "Explain how a queue works and name its main operations. GIVE YOUR ANSWER", correctKeywords: ["fifo", "enqueue", "dequeue", "first in first out"] },
+    { id: 3, text: "How do you reverse a singly linked list? GIVE YOUR ANSWER", correctKeywords: ["reverse linked list", "prev next", "iterative reverse", "reverse pointers"] },
+    { id: 4, text: "What is inorder traversal of a binary tree? GIVE YOUR ANSWER", correctKeywords: ["left root right", "inorder"] },
+    { id: 5, text: "Difference between binary tree and binary search tree. GIVE YOUR ANSWER", correctKeywords: ["bst", "ordered", "binary search tree", "left smaller right larger"] },
+    { id: 6, text: "Write the idea behind bubble sort. GIVE YOUR ANSWER", correctKeywords: ["bubble sort", "adjacent swap", "compare and swap"] },
+    { id: 7, text: "Average time complexity of quicksort. GIVE YOUR ANSWER", correctKeywords: ["n log n", "nlogn", "n * log n"] },
+    { id: 8, text: "Explain binary search. GIVE YOUR ANSWER", correctKeywords: ["binary search", "sorted", "divide and conquer", "mid"] },
+    { id: 9, text: "What causes stack overflow? GIVE YOUR ANSWER", correctKeywords: ["infinite recursion", "too deep recursion", "exceed stack"] },
+    { id: 10, text: "Difference between queue and deque. GIVE YOUR ANSWER", correctKeywords: ["deque", "double ended", "both ends"] },
+    { id: 11, text: "How to detect a cycle in a linked list? GIVE YOUR ANSWER", correctKeywords: ["floyd", "tortoise hare", "cycle detection"] },
+    { id: 12, text: "Explain level order traversal of a tree. GIVE YOUR ANSWER", correctKeywords: ["bfs", "level order", "queue"] },
+    { id: 13, text: "What is height and depth of a node in a tree? GIVE YOUR ANSWER", correctKeywords: ["height depth", "height of node", "depth of node"] },
+    { id: 14, text: "Describe merge sort concept. GIVE YOUR ANSWER", correctKeywords: ["merge sort", "divide and conquer", "merge"] },
+    { id: 15, text: "How to insert into a binary search tree? GIVE YOUR ANSWER", correctKeywords: ["bst insert", "compare and go left right", "insert bst"] },
+    { id: 16, text: "What is amortized analysis? GIVE YOUR ANSWER", correctKeywords: ["amortized"] },
+    { id: 17, text: "Explain difference between array and linked list. GIVE YOUR ANSWER", correctKeywords: ["random access", "dynamic size", "contiguous", "linked list"] },
+    { id: 18, text: "What is a priority queue? GIVE YOUR ANSWER", correctKeywords: ["priority queue", "heap", "priority"] },
+    { id: 19, text: "Explain two-pointer technique. GIVE YOUR ANSWER", correctKeywords: ["two pointer", "two pointers", "two-pointer"] },
+    { id: 20, text: "How does insertion sort work? GIVE YOUR ANSWER", correctKeywords: ["insertion sort", "insert into sorted", "shift elements"] },
+    { id: 21, text: "Explain what a balanced tree is. GIVE YOUR ANSWER", correctKeywords: ["balanced tree", "height balanced", "avl", "red black"] },
+    { id: 22, text: "Describe how a hash table handles collisions. GIVE YOUR ANSWER", correctKeywords: ["chaining", "open addressing", "collision"] },
+    { id: 23, text: "What is the time complexity of searching in a linked list? GIVE YOUR ANSWER", correctKeywords: ["o(n)", "linear", "linear time"] },
+    { id: 24, text: "Explain preorder traversal. GIVE YOUR ANSWER", correctKeywords: ["root left right", "preorder"] },
+    { id: 25, text: "Describe postorder traversal. GIVE YOUR ANSWER", correctKeywords: ["left right root", "postorder"] },
+    { id: 26, text: "How to perform breadth-first search (BFS)? GIVE YOUR ANSWER", correctKeywords: ["bfs", "queue"] },
+    { id: 27, text: "How to perform depth-first search (DFS)? GIVE YOUR ANSWER", correctKeywords: ["dfs", "stack", "recursive"] },
+    { id: 28, text: "What is quickselect used for? GIVE YOUR ANSWER", correctKeywords: ["kth", "quickselect", "select"] },
+    { id: 29, text: "Explain stable vs unstable sorting. GIVE YOUR ANSWER", correctKeywords: ["stable", "unstable", "relative order"] },
+    { id: 30, text: "What is tail recursion? GIVE YOUR ANSWER", correctKeywords: ["tail recursion", "last call"] },
+    { id: 31, text: "Difference between array-based queue and linked-list queue. GIVE YOUR ANSWER", correctKeywords: ["circular buffer", "array queue", "linked queue"] },
+    { id: 32, text: "How to delete a node from a singly linked list if only given that node? GIVE YOUR ANSWER", correctKeywords: ["copy next", "copy data", "delete by copying"] },
+    { id: 33, text: "Explain how a min-heap is different from a max-heap. GIVE YOUR ANSWER", correctKeywords: ["min heap", "max heap", "root smallest largest"] },
+    { id: 34, text: "What is the best case complexity of bubble sort? GIVE YOUR ANSWER", correctKeywords: ["n", "o(n)", "already sorted"] },
+    { id: 35, text: "How to check if a binary tree is a BST? GIVE YOUR ANSWER", correctKeywords: ["inorder sorted", "min max", "bst check"] },
+    { id: 36, text: "Describe how to merge two sorted arrays in place. GIVE YOUR ANSWER", correctKeywords: ["merge two sorted", "two pointers"] },
+    { id: 37, text: "Explain the concept of hashing. GIVE YOUR ANSWER", correctKeywords: ["hash", "hash function"] },
+    { id: 38, text: "What is cycle detection in directed graphs? GIVE YOUR ANSWER", correctKeywords: ["dfs recursion stack", "topological sort", "cycle detection"] },
+    { id: 39, text: "How to rotate an array by k positions? GIVE YOUR ANSWER", correctKeywords: ["reverse method", "rotate", "k positions"] },
+    { id: 40, text: "Difference between linear search and binary search. GIVE YOUR ANSWER", correctKeywords: ["binary search", "sorted", "o(n) vs o(log n)"] },
+    { id: 41, text: "Explain how to implement a queue using two stacks. GIVE YOUR ANSWER", correctKeywords: ["two stacks", "enqueue dequeue", "amortized"] },
+    { id: 42, text: "What is the complexity of searching in a balanced BST? GIVE YOUR ANSWER", correctKeywords: ["log n", "o(log n)", "logarithmic"] },
+    { id: 43, text: "Explain Rabin-Karp algorithm idea for string search. GIVE YOUR ANSWER", correctKeywords: ["rolling hash", "rabin karp"] },
+    { id: 44, text: "How to find lowest common ancestor in BST? GIVE YOUR ANSWER", correctKeywords: ["lca", "compare values", "bst lca"] },
+    { id: 45, text: "Describe topological sort. GIVE YOUR ANSWER", correctKeywords: ["topological", "dag", "order"] },
+    { id: 46, text: "How to detect palindrome in linked list? GIVE YOUR ANSWER", correctKeywords: ["reverse second half", "stack", "compare halves"] },
+    { id: 47, text: "Explain Floyd’s cycle-finding algorithm. GIVE YOUR ANSWER", correctKeywords: ["floyd", "tortoise hare"] },
+    { id: 48, text: "What is divide and conquer? GIVE YOUR ANSWER", correctKeywords: ["divide and conquer", "divide conquer combine"] },
+    { id: 49, text: "How to implement binary search on floating point with precision? GIVE YOUR ANSWER", correctKeywords: ["epsilon", "precision"] },
+    { id: 50, text: "Explain the concept of sentinel nodes in linked lists. GIVE YOUR ANSWER", correctKeywords: ["sentinel", "dummy head", "dummy node"] }
   ],
+
+  // Level 3 unchanged (kept short)
   level3: [
     { id: 1, text: "I speak without a mouth and hear without ears. I have nobody, but I come alive with wind. What am I?", options: ["Echo", "Shadow", "Fire", "Silence"], correctIndex: 0 },
     { id: 2, text: "Which 4-digit number has digits that add up to 10 and is divisible by 5?", options: ["1004", "4006", "5500", "6700"], correctIndex: 2 },
     { id: 3, text: "Which of these numbers is a prime?", options: ["121", "143", "149", "169"], correctIndex: 2 },
     { id: 4, text: "Next in series: 2, 10, 12, 60, 62, ?", options: ["124", "310", "314", "62"], correctIndex: 1 },
-    { id: 5, text: "I am an odd number. Take away one letter and I become even. What number am I?", options: ["Seven", "Eleven", "Five", "Nine"], correctIndex: 0 },
-  ],
+    { id: 5, text: "I am an odd number. Take away one letter and I become even. What number am I?", options: ["Seven", "Eleven", "Five", "Nine"], correctIndex: 0 }
+  ]
 };
 
+function getRandomSubset<T>(arr: T[], count: number): T[] {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy.slice(0, Math.min(count, copy.length));
+}
 
 export default function AnomalyQuiz(): JSX.Element {
   const [level, setLevel] = useState<number>(1);
-  const [questions, setQuestions] = useState<Question[]>(QUESTION_BANK.level1);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [index, setIndex] = useState<number>(0);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [textAnswer, setTextAnswer] = useState<string>("");
   const [scoreByLevel, setScoreByLevel] = useState<Record<number, number>>({ 1: 0, 2: 0, 3: 0 });
   const [showUnlockScreen, setShowUnlockScreen] = useState<boolean>(false);
   const [unlockMessage, setUnlockMessage] = useState<string>("");
@@ -83,31 +178,56 @@ export default function AnomalyQuiz(): JSX.Element {
   };
 
   useEffect(() => {
-    if (level === 1) setQuestions(QUESTION_BANK.level1);
-    else if (level === 2) setQuestions(QUESTION_BANK.level2);
+    // choose random 10 for levels 1 & 2; keep level3 as-is
+    if (level === 1) setQuestions(getRandomSubset(QUESTION_BANK.level1, 10));
+    else if (level === 2) setQuestions(getRandomSubset(QUESTION_BANK.level2, 10));
     else if (level === 3) setQuestions(QUESTION_BANK.level3);
     setIndex(0);
     setSelectedOption(null);
+    setTextAnswer("");
   }, [level]);
 
   function handleOptionClick(optionIndex: number) {
-    if (selectedOption !== null) return;
-    setSelectedOption(optionIndex);
+    if (selectedOption !== null) return; // prevent multiple clicks
 
+    setSelectedOption(optionIndex);
     const currentQ = questions[index];
-    if (optionIndex === currentQ.correctIndex) {
-      const pointsToAdd = level; // Weighted scoring
-      setScoreByLevel((s) => ({ ...s, [level]: (s[level] || 0) + pointsToAdd }));
+    const isCorrect = currentQ.correctIndex !== undefined && optionIndex === currentQ.correctIndex;
+    if (isCorrect) {
+      setScoreByLevel((s) => ({ ...s, [level]: (s[level] || 0) + 1 }));
     }
 
     setTimeout(() => {
-      if (index + 1 < questions.length) {
-        setIndex(index + 1);
-        setSelectedOption(null);
-      } else {
-        handleLevelComplete();
-      }
-    }, 650);
+      goNextQuestion();
+    }, 1500); // Increased delay for better visual feedback
+  }
+
+  function handleTextSubmit() {
+    if (!textAnswer.trim()) return; // ignore blank
+
+    const currentQ = questions[index];
+    const user = textAnswer.trim().toLowerCase();
+    const keywords = currentQ.correctKeywords || [];
+
+    // Loose matching: correct if any keyword is included
+    const isCorrect = keywords.some((kw) => user.includes(kw.toLowerCase()));
+    if (isCorrect) {
+      setScoreByLevel((s) => ({ ...s, [level]: (s[level] || 0) + 1 }));
+    }
+
+    setTextAnswer("");
+    goNextQuestion();
+  }
+
+  function goNextQuestion() {
+    const nextIndex = index + 1;
+    if (nextIndex < questions.length) {
+      setIndex(nextIndex);
+      setSelectedOption(null);
+      setTextAnswer("");
+    } else {
+      handleLevelComplete();
+    }
   }
 
   function handleLevelComplete() {
@@ -146,23 +266,20 @@ export default function AnomalyQuiz(): JSX.Element {
   const currentQuestion = questions[index];
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-black via-[#0a0a1a] to-black text-white">
-      <div className="w-full max-w-3xl bg-black/70 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-white/10">
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-green-900 via-black to-green-900 text-white p-6">
+      <div className="w-full max-w-4xl bg-black/70 backdrop-blur-lg rounded-2xl p-6 shadow-xl border border-green-400">
         <header className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Anomaly — Puzzle Levels</h2>
+          <h2 className="text-2xl font-semibold text-green-400">Anomaly — Puzzle Levels</h2>
           <div className="text-sm opacity-80">
-            Level: <span className="font-bold">{level}</span> &nbsp;|&nbsp; Score: <span className="font-bold">{scoreByLevel[level] || 0}</span>
+            Level: <span className="font-bold text-green-300">{level}</span> &nbsp;|&nbsp; Score: <span className="font-bold text-green-300">{scoreByLevel[level] || 0}</span>
           </div>
         </header>
 
         {showUnlockScreen && (
-          <div className="text-center py-16">
-            <h3 className="text-2xl font-bold mb-4">{unlockMessage.split("\n")[0]}</h3>
+          <div className="text-center py-12">
+            <h3 className="text-2xl font-bold mb-4 text-green-400">{unlockMessage.split("\n")[0]}</h3>
             <p className="mb-6 whitespace-pre-line">{unlockMessage.split("\n")[1]}</p>
-            <button
-              onClick={startNextLevel}
-              className="px-6 py-2 rounded-lg bg-gradient-to-r from-green-400 to-blue-500 text-black font-semibold shadow-md"
-            >
+            <button onClick={startNextLevel} className="px-6 py-2 rounded-lg bg-gradient-to-r from-green-400 to-green-600 text-black font-semibold shadow-md">
               Start Level {level + 1}
             </button>
           </div>
@@ -170,13 +287,10 @@ export default function AnomalyQuiz(): JSX.Element {
 
         {finalUnlocked && (
           <div className="text-center py-8">
-            <h1 className="text-2xl font-extrabold mb-4">You have successfully Unlocked the portal! 🔓✨</h1>
-            <p className="mb-6">Enjoy the final reveal. (Replace the video file in public folder at {finalVideoSrc})</p>
-            <div className="mx-auto max-w-2xl">
-              <video src={finalVideoSrc} controls autoPlay className="w-full rounded-lg shadow-lg" />
-            </div>
+            <h1 className="text-2xl font-extrabold mb-4 text-green-400">YOU HAVE SUCCESSFULLY UNLOCKED THE PORTAL 🔓✨</h1>
+            <p className="mb-6">You have completed all puzzle levels. The final enigma is solved.</p>
             <div className="mt-6">
-              <button onClick={restartGame} className="px-5 py-2 rounded bg-white text-black font-medium">
+              <button onClick={restartGame} className="px-5 py-2 rounded bg-green-500 text-black font-medium">
                 Play Again
               </button>
             </div>
@@ -189,47 +303,67 @@ export default function AnomalyQuiz(): JSX.Element {
               Question {index + 1} of {questions.length}
             </div>
 
-            <div className="p-5 bg-white/5 rounded-lg mb-4">
-              <div className="text-lg font-semibold mb-3">{currentQuestion.text}</div>
+            <div className="p-6 rounded-lg mb-4 border border-green-500/30 bg-black/30">
+              <div className="text-lg font-semibold mb-4 text-green-200">{currentQuestion.text}</div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {currentQuestion.options.map((opt, i) => {
-                  const isSelected = selectedOption === i;
-                  const isCorrect = selectedOption !== null && i === currentQuestion.correctIndex;
-                  const baseClass = "px-4 py-3 rounded-lg border cursor-pointer text-left font-medium";
-                  let extra = "border-white/20 bg-white/3";
+              {(level === 1 || level === 3) && currentQuestion.options && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {currentQuestion.options.map((opt, i) => {
+                    const isSelected = selectedOption === i;
+                    const isCorrect = currentQuestion.correctIndex !== undefined && i === currentQuestion.correctIndex;
+                    const baseClass = "px-4 py-3 rounded-lg border cursor-pointer text-left font-medium transition-all duration-300";
+                    let extra = "border-green-500/30 bg-green-900/20";
 
-                  if (selectedOption !== null) {
-                    if (isCorrect) extra = "border-green-400 bg-green-500/20";
-                    else if (isSelected) extra = "border-red-400 bg-red-500/10";
-                    else extra = "opacity-70";
-                  } else {
-                    extra = "hover:scale-[1.01] transition-transform";
-                  }
+                    if (selectedOption !== null) {
+                      if (isCorrect) {
+                        extra = "border-green-400 bg-green-500/20 scale-105"; // Correct answer is always green
+                      } else if (isSelected && !isCorrect) {
+                        extra = "border-red-400 bg-red-500/10 scale-95"; // Incorrect selection is red
+                      } else {
+                        extra = "opacity-70"; // Other options are faded
+                      }
+                    } else {
+                      extra = "hover:scale-[1.01] transition-transform";
+                    }
 
-                  return (
-                    <button
-                      key={i}
-                      className={`${baseClass} ${extra}`}
-                      onClick={() => handleOptionClick(i)}
-                      disabled={selectedOption !== null}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 flex items-center justify-center rounded-full bg-white/8 text-sm">
-                          {String.fromCharCode(65 + i)}
+                    return (
+                      <button
+                        key={i}
+                        className={`${baseClass} ${extra}`}
+                        onClick={() => handleOptionClick(i)}
+                        disabled={selectedOption !== null}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 flex items-center justify-center rounded-full bg-green-800/40 text-sm">{String.fromCharCode(65 + i)}</div>
+                          <div>{opt}</div>
                         </div>
-                        <div>{opt}</div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {level === 2 && (
+                <div className="flex gap-3 mt-4">
+                  <input
+                    type="text"
+                    value={textAnswer}
+                    onChange={(e) => setTextAnswer(e.target.value)}
+                    className="flex-1 px-3 py-2 rounded bg-black/40 border border-green-400 text-green-200"
+                    placeholder="GIVE YOUR ANSWER"
+                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                      if (e.key === "Enter") handleTextSubmit();
+                    }}
+                  />
+                  <button onClick={handleTextSubmit} className="px-4 py-2 rounded bg-green-500 text-black font-semibold">
+                    Submit
+                  </button>
+                </div>
+              )}
             </div>
 
             <footer className="flex items-center justify-between text-sm opacity-80">
-              <div>
-                Level {level} progress: {index + 1}/{questions.length}
-              </div>
+              <div>Level {level} progress: {index + 1}/{questions.length}</div>
               <div>Score (this level): {scoreByLevel[level] || 0}</div>
             </footer>
           </div>
@@ -238,7 +372,7 @@ export default function AnomalyQuiz(): JSX.Element {
         {!showUnlockScreen && !finalUnlocked && questions.length === 0 && (
           <div className="text-center py-12">
             <p className="mb-4">No questions loaded for this level.</p>
-            <button onClick={() => setLevel(1)} className="px-4 py-2 bg-white text-black rounded">
+            <button onClick={() => setLevel(1)} className="px-4 py-2 bg-green-500 text-black rounded">
               Restart from Level 1
             </button>
           </div>
