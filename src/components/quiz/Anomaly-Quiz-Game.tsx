@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import skullImg from "./skull.png"; 
-
 type Question = {
   id: number;
   text: string;
   options?: string[]; // Level 1 & 3
   correctIndex?: number; // Level 1 & 3
-  correctKeywords?: string[]; // Level 2
+  correctKeywords?: string[]; 
 };
 
 const chars =
@@ -293,6 +292,7 @@ export default function AnomalyQuiz(): JSX.Element {
     const img = new Image();
     img.src = skullImg;
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let animationId: number;
     img.onload = () => {
       ctx.drawImage(img, 0, 0, width, height);
@@ -312,33 +312,34 @@ export default function AnomalyQuiz(): JSX.Element {
   }
 }
 
-        let t = 0;
-function animate() {
-  ctx.clearRect(0, 0, width, height);
-  points.forEach((p, i) => {
-    const dx = Math.sin(t / 15 + i) * 1.2;
-    const dy = Math.cos(t / 18 + i) * 1.2;
-    const size = 1.2 + Math.sin(t / 20 + i) * 0.5;
+ let t = 0;
+      function animate() {
+ if (!ctx) return; // Ensure ctx is not null
+ ctx.clearRect(0, 0, width, height);
+ points.forEach((p, i) => {
+ const dx = Math.sin(t / 15 + i) * 1.2;
+ const dy = Math.cos(t / 18 + i) * 1.2;
+ const size = 1.2 + Math.sin(t / 20 + i) * 0.5;
 
-    ctx.beginPath();
-    ctx.arc(p.x + dx, p.y + dy, size, 0, Math.PI * 2);
+ ctx.beginPath();
+ ctx.arc(p.x + dx, p.y + dy, size, 0, Math.PI * 2);
 
-    if (level === 1) {
-      ctx.fillStyle = `rgba(0,255,0,${0.6 + Math.random() * 0.4})`;
-      ctx.shadowColor = "lime";
-    } else {
-      ctx.fillStyle = `rgba(255,0,0,${0.6 + Math.random() * 0.4})`;
-      ctx.shadowColor = "red";
-    }
+ if (level === 1) {
+ ctx.fillStyle = `rgba(0,255,0,${0.6 + Math.random() * 0.4})`;
+ ctx.shadowColor = "lime";
+ } else {
+ ctx.fillStyle = `rgba(255,0,0,${0.6 + Math.random() * 0.4})`;
+ ctx.shadowColor = "red";
+ }
 
-    ctx.shadowBlur = 4; // reduced blur
-    ctx.fill();
-  });
+ ctx.shadowBlur = 4; // reduced blur
+ ctx.fill();
+ });
 
-  t++;
-  setTimeout(() => requestAnimationFrame(animate), 33); // ~30fps
-}
-animate();
+ t++;
+ setTimeout(() => animationId = requestAnimationFrame(animate), 33); // ~30fps
+      }
+ animate();
 
     };
 
