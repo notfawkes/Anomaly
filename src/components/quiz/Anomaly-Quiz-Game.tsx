@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import skullImg from "./skull.png"; 
+import React, { useEffect, useState, useRef } from "react";
+import skullImg from "./skull.png"; 
 
 type Question = {
   id: number;
@@ -18,6 +20,9 @@ const STORY_TEXT = {
   level3Intro: `"The final breach is here, in the TRA headquarters itself. The final level is the hardest: a direct assault on the source of The Fracture. The final puzzle awaits. Good luck, Agent. The truth is the final anomaly."`,
   level3Complete: `THE FINAL PORTAL IS UNLOCKED!`
 };
+
+const chars =
+  "アァイィウヴエェオカキクケコサシスセソタチツテトABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 const QUESTION_BANK: { level1: Question[]; level2: Question[]; level3: Question[] } = {
   level1: [
@@ -95,6 +100,7 @@ export default function AnomalyQuiz(): JSX.Element {
     }
   };
 
+  // --- set up questions per level ---
   useEffect(() => {
     if (level === 1) {
         setQuestions(QUESTION_BANK.level1);
@@ -423,4 +429,3 @@ export default function AnomalyQuiz(): JSX.Element {
     </div>
   );
 }
-
