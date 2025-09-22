@@ -1,12 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import skullImg from "./skull.png"; 
-import React, { useEffect, useState, useRef } from "react";
-import skullImg from "./skull.png"; 
 type Question = {
   id: number;
   text: string;
-  options?: string[]; // Level 1 & 3
-  correctIndex?: number; // Level 1 & 3
   correctKeywords?: string[]; 
   options?: string[];
   correctIndex?: number;
@@ -18,13 +14,10 @@ const STORY_TEXT = {
   level1Intro: `TRA COMMLINK INITIATED...\n"Agent, welcome. The Fracture's initial shockwave has destabilized the most fundamental events. We're detecting paradoxes in basic historical sequences—birthdates, resource allocations, simple logic. Your first task is to stabilize these 'Primary Nodes' by solving the temporal anomalies corrupting them. Use your core aptitude skills. The fate of a simple timeline depends on it."`,
   level1Complete: `THE SKULL AWAKENS...`,
   level2Intro: `TRA COMMLINK UPDATE...\n"Agent, the attack is sophisticated. The core timeline is represented by complex data structures, which are now riddled with recursive paradoxes and pointer corruption. You must traverse these unstable structures, correct the code, and patch the memory leaks. Our scans indicate ten critical errors. Fix them."`,
-  level2Complete: `THE RED SKULL EMERGES 🔥`,
+  level2Complete: `THE RED SKULL EMERGES`,
   level3Intro: `"The final breach is here, in the TRA headquarters itself. The final level is the hardest: a direct assault on the source of The Fracture. The final puzzle awaits. Good luck, Agent. The truth is the final anomaly."`,
   level3Complete: `THE FINAL PORTAL IS UNLOCKED!`
 };
-
-const chars =
-  "アァイィウヴエェオカキクケコサシスセソタチツテトABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 const QUESTION_BANK: { level1: Question[]; level2: Question[]; level3: Question[] } = {
   level1: [
@@ -312,33 +305,6 @@ export default function AnomalyQuiz(): JSX.Element {
 
  t++;
  setTimeout(() => animationId = requestAnimationFrame(animate), 33); // ~30fps
-      }
- animate();
-
-          if (a > 100 && brightness > 100) points.push({ x, y });
-        }
-      }
-      let t = 0;
-      function animate() {
-        ctx.clearRect(0, 0, width, height);
-        points.forEach((p, i) => {
-          const dx = Math.sin(t / 15 + i) * 1.2;
-          const dy = Math.cos(t / 18 + i) * 1.2;
-          const size = 1.2 + Math.sin(t / 20 + i) * 0.5;
-          ctx.beginPath();
-          ctx.arc(p.x + dx, p.y + dy, size, 0, Math.PI * 2);
-          if (level === 1) {
-            ctx.fillStyle = `rgba(0,255,0,${0.6 + Math.random() * 0.4})`;
-            ctx.shadowColor = "lime";
-          } else {
-            ctx.fillStyle = `rgba(255,0,0,${0.6 + Math.random() * 0.4})`;
-            ctx.shadowColor = "red";
-          }
-          ctx.shadowBlur = 4;
-          ctx.fill();
-        });
-        t++;
-        animationId = requestAnimationFrame(animate);
       }
       animate();
     };
