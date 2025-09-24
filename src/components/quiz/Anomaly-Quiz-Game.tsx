@@ -321,9 +321,18 @@ export default function AnomalyQuiz(): JSX.Element {
             <SettingsIcon />
             <h3 className="text-xl font-bold my-4 text-green-400">MISSION BRIEFING: LEVEL {level}</h3>
             <p className="mb-6 whitespace-pre-wrap text-left text-green-300 max-w-2xl mx-auto">{story}</p>
-            <button onClick={() => setGameState('playing')} className="px-6 py-2 rounded-lg bg-green-500 text-black font-semibold shadow-md hover:bg-green-400 transition-colors">
-              BEGIN CALIBRATION
-            </button>
+              <button
+                onClick={() => {
+                  if (level === 3) {
+                    window.location.href = "https://anomaly-networking.vercel.app/";
+                  } else {
+                    setGameState("playing");
+                  }
+                }}
+                className="px-6 py-2 rounded-lg bg-green-500 text-black font-semibold shadow-md hover:bg-green-400 transition-colors"
+              >
+                BEGIN CALIBRATION
+              </button>
           </div>
         );
       case 'levelComplete':
